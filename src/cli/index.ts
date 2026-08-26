@@ -50,6 +50,7 @@ Indie Archive — artwork to fulfilled merchandise.
   ia product:propose                 Match a garment and map variants
       --artwork <id> --name <text> --slug <text> [--producer printful|gelato]
       [--sku STTU169] [--sizes S,M,L,XL] [--colour Black] [--placement front]
+      [--print-width-mm 180]        validate at the size actually printed
   ia product:price                   Quote costs and propose a retail price
       --product <id> [--producer <id>] [--country GB] [--postcode <code>]
       [--shipping-charged <pence>] [--cpa <pence>] [--price <pence>]
@@ -282,6 +283,7 @@ async function productPropose(args: ParsedArgs): Promise<void> {
     placement: optionalString(args, 'placement') ?? 'front',
     sizes: list(args, 'sizes', ['S', 'M', 'L', 'XL']),
     colour: optionalString(args, 'colour') ?? null,
+    printWidthMm: optionalInt(args, 'print-width-mm'),
   });
 
   out(`Product proposed: ${result.productId}`);
@@ -295,6 +297,10 @@ async function productPropose(args: ParsedArgs): Promise<void> {
   out('');
   out(`  print file               ${result.printFile.acceptable ? 'ACCEPTABLE' : 'REJECTED'}`);
   out(`  effective DPI            ${result.printFile.effectiveDpi?.toFixed(0) ?? 'UNKNOWN'}`);
+  if (result.maxWidthMmAtFloor !== null) {
+    out(`  max width at 150 DPI     ${result.maxWidthMmAtFloor.toFixed(0)}mm`);
+    out(`  max width at 300 DPI     ${result.maxWidthMmAtPreferred?.toFixed(0) ?? '?'}mm`);
+  }
   for (const error of result.printFile.errors) out(`    ERROR   ${wrap(error, 66, 12)}`);
   for (const warning of result.printFile.warnings) out(`    warning ${wrap(warning, 66, 12)}`);
 }

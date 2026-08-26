@@ -14,8 +14,20 @@
 import type { PrintAreaSpec, PrintFileValidationResult } from '../ports/producer.ts';
 
 export interface ArtworkMetadata {
+  /** Dimensions of the delivered file. */
   readonly widthPx: number;
   readonly heightPx: number;
+  /**
+   * True source resolution, when the delivered file has been upscaled or
+   * placed on a larger canvas.
+   *
+   * Without this, a padded or upscaled file defeats the DPI check: the file
+   * measures 3600px against a 3600px print area and reports 300 DPI, while its
+   * content carries the detail of a 1080px original. Upscaling adds pixels, not
+   * information. When present, effective DPI is computed from these.
+   */
+  readonly nativeWidthPx?: number | null;
+  readonly nativeHeightPx?: number | null;
   readonly format: string;
   /** e.g. "srgb", "cmyk", "gray". Null when it could not be determined. */
   readonly colourSpace: string | null;
@@ -70,6 +82,20 @@ export function validatePrintFile(
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  // Effective DPI is computed from the NATIVE pixels when they are known, so an
+  // upscaled or padded file cannot report a resolution it does not have.
+  const nativeWidth = artwork.nativeWidthPx ?? artwork.widthPx;
+  const nativeHeight = artwork.nativeHeightPx ?? artwork.heightPx;
+  const upscaleFactor = nativeWidth > 0 ? artwork.widthPx / nativeWidth : 1;
+  if (upscaleFactor > 1.01) {
+    warnings.push(
+      `Delivered file is a ${upscaleFactor.toFixed(2)}x upscale of a ` +
+        `${nativeWidth}x${nativeHeight}px original. Resolution checks below use the ` +
+        'original pixels: upscaling adds pixels, not detail.',
+    );
+  }
+
+
   const format = artwork.format.toLowerCase().replace(/^\./, '');
   if (!policy.allowedFormats.includes(format)) {
     errors.push(
@@ -98,18 +124,18 @@ export function validatePrintFile(
 
   // Coverage: the artwork must be large enough to fill the print area without
   // being upscaled beyond the DPI floor.
-  const widthRatio = artwork.widthPx / printArea.widthPx;
-  const heightRatio = artwork.heightPx / printArea.heightPx;
+  const widthRatio = nativeWidth / printArea.widthPx;
+  const heightRatio = nativeHeight / printArea.heightPx;
   if (widthRatio < policy.minimumCoverage || heightRatio < policy.minimumCoverage) {
     errors.push(
-      `Artwork is ${artwork.widthPx}x${artwork.heightPx}px against a ` +
+      `Artwork is ${nativeWidth}x${nativeHeight}px against a ` +
         `${printArea.widthPx}x${printArea.heightPx}px print area for "${printArea.placement}". ` +
         `It would need upscaling to fill the placement.`,
     );
   }
 
-  const dpiWidth = effectiveDpi(artwork.widthPx, printArea.widthPx, printArea.dpi);
-  const dpiHeight = effectiveDpi(artwork.heightPx, printArea.heightPx, printArea.dpi);
+  const dpiWidth = effectiveDpi(nativeWidth, printArea.widthPx, printArea.dpi);
+  const dpiHeight = effectiveDpi(nativeHeight, printArea.heightPx, printArea.dpi);
   const dpi =
     dpiWidth === null || dpiHeight === null ? null : Math.min(dpiWidth, dpiHeight);
 
@@ -138,7 +164,7 @@ export function validatePrintFile(
     );
   }
 
-  const aspectArtwork = artwork.widthPx / artwork.heightPx;
+  const aspectArtwork = nativeWidth / nativeHeight;
   const aspectArea = printArea.widthPx / printArea.heightPx;
   const aspectDrift = Math.abs(aspectArtwork - aspectArea) / aspectArea;
   if (aspectDrift > 0.05) {
@@ -154,5 +180,124 @@ export function validatePrintFile(
     errors,
     warnings,
     printArea,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Placement-based validation
+// ---------------------------------------------------------------------------
+
+export interface PrintPlacement {
+  readonly placement: string;
+  /** Intended printed width in millimetres. */
+  readonly widthMm: number;
+  /** Intended printed height in millimetres. */
+  readonly heightMm: number;
+}
+
+/**
+ * Effective DPI for a chosen printed size, independent of any canvas.
+ *
+ * This is the honest question for artwork that will not fill the whole print
+ * area: not "does the file match the placement's pixel dimensions" but "how
+ * many real pixels land in each printed inch at the size we intend to print".
+ */
+export function effectiveDpiForPrintSize(nativePx: number, printMm: number): number | null {
+  if (nativePx <= 0 || printMm <= 0) return null;
+  return nativePx / (printMm / 25.4);
+}
+
+/** The largest printed width, in mm, that a given pixel count supports. */
+export function maxPrintWidthMm(nativePx: number, atDpi: number): number {
+  if (nativePx <= 0 || atDpi <= 0) return 0;
+  return (nativePx / atDpi) * 25.4;
+}
+
+export interface PlacedPrintResult {
+  readonly acceptable: boolean;
+  readonly effectiveDpi: number | null;
+  readonly errors: readonly string[];
+  readonly warnings: readonly string[];
+  /** Printed size that would meet the DPI floor, for the operator's reference. */
+  readonly maxWidthMmAtFloor: number;
+  readonly maxWidthMmAtPreferred: number;
+}
+
+/**
+ * Validate artwork against an intended printed size.
+ *
+ * Use this when the artwork is printed at a chosen size within a larger print
+ * area — which is the normal case for a chest print. `validatePrintFile` asks
+ * whether the file fills the supplier's whole placement; this asks whether the
+ * artwork holds up at the size actually being printed.
+ */
+export function validatePlacedPrint(
+  artwork: ArtworkMetadata,
+  placement: PrintPlacement,
+  policy: PrintFilePolicy = DEFAULT_PRINT_FILE_POLICY,
+): PlacedPrintResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  const nativeWidth = artwork.nativeWidthPx ?? artwork.widthPx;
+  const nativeHeight = artwork.nativeHeightPx ?? artwork.heightPx;
+
+  const format = artwork.format.toLowerCase().replace(/^\./, '');
+  if (!policy.allowedFormats.includes(format)) {
+    errors.push(
+      `Format "${format}" is not printable. Supply one of: ${policy.allowedFormats.join(', ')}.`,
+    );
+  }
+  if (artwork.colourSpace !== null && !policy.allowedColourSpaces.includes(artwork.colourSpace.toLowerCase())) {
+    errors.push(`Colour space "${artwork.colourSpace}" is not accepted. Convert to sRGB.`);
+  }
+
+  const dpiWidth = effectiveDpiForPrintSize(nativeWidth, placement.widthMm);
+  const dpiHeight = effectiveDpiForPrintSize(nativeHeight, placement.heightMm);
+  const dpi = dpiWidth === null || dpiHeight === null ? null : Math.min(dpiWidth, dpiHeight);
+
+  if (dpi === null) {
+    errors.push('Cannot compute effective resolution: artwork or placement size is zero.');
+  } else if (dpi < policy.minimumDpi) {
+    errors.push(
+      `At ${placement.widthMm}x${placement.heightMm}mm the effective resolution is ` +
+        `${dpi.toFixed(0)} DPI, below the ${policy.minimumDpi} DPI floor. Print smaller ` +
+        `than ${maxPrintWidthMm(nativeWidth, policy.minimumDpi).toFixed(0)}mm wide, or ` +
+        'supply a higher-resolution original.',
+    );
+  } else if (dpi < policy.preferredDpi) {
+    warnings.push(
+      `At ${placement.widthMm}x${placement.heightMm}mm the effective resolution is ` +
+        `${dpi.toFixed(0)} DPI — above the ${policy.minimumDpi} DPI floor but below the ` +
+        `preferred ${policy.preferredDpi}. Acceptable for direct-to-garment on cotton, ` +
+        'where fabric texture limits perceivable detail. Order a physical sample.',
+    );
+  }
+
+  const aspectArtwork = nativeWidth / nativeHeight;
+  const aspectPlacement = placement.widthMm / placement.heightMm;
+  const drift = Math.abs(aspectArtwork - aspectPlacement) / aspectPlacement;
+  if (drift > 0.02) {
+    errors.push(
+      `Artwork aspect ratio ${aspectArtwork.toFixed(3)} does not match the requested ` +
+        `placement ${aspectPlacement.toFixed(3)}. The print would be stretched or ` +
+        'cropped — set a placement size with the same proportions.',
+    );
+  }
+
+  if (artwork.hasAlpha === false) {
+    warnings.push(
+      'No alpha channel: the artwork prints as a filled rectangle. On a dark garment ' +
+        'this needs a white underbase, which changes hand-feel and cost.',
+    );
+  }
+
+  return {
+    acceptable: errors.length === 0,
+    effectiveDpi: dpi,
+    errors,
+    warnings,
+    maxWidthMmAtFloor: maxPrintWidthMm(nativeWidth, policy.minimumDpi),
+    maxWidthMmAtPreferred: maxPrintWidthMm(nativeWidth, policy.preferredDpi),
   };
 }

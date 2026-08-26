@@ -148,8 +148,28 @@ aspect-ratio mismatch, and — importantly — an UNKNOWN effective DPI when the
 supplier publishes no print resolution, where it says outright that print
 quality cannot be verified from data and a physical sample is needed.
 
-Effective DPI is `artworkPx / (printAreaPx / printAreaDpi)` — how many real
+Effective DPI is `nativePx / (printAreaPx / printAreaDpi)` — how many real
 pixels land in each printed inch once the artwork is scaled to fill the area.
+
+### Two ways to ask the question
+
+`validatePrintFile` asks "does this file fill the supplier's whole placement".
+`validatePlacedPrint` asks "does the artwork hold up at the size we intend to
+print" — which is the right question for a chest print that does not fill the
+area, and the only one that reflects what the customer receives. Pass
+`--print-width-mm` to `ia product:propose` to use it.
+
+### Padding and upscaling cannot fake resolution
+
+A 1080px original placed on a supplier's 3600×4800 canvas measures 3600px
+against a 3600px print area and would report a comfortable 300 DPI. Its content
+carries the detail of a 1080px file. `ArtworkMetadata` therefore carries
+optional `nativeWidthPx`/`nativeHeightPx`, and every resolution, coverage and
+aspect check uses the native pixels when they are known, warning explicitly
+when the delivered file is an upscale. Upscaling adds pixels, not information.
+
+Note that the binding dimension is usually the height: 1080px across a 16-inch
+placement is 67.5 DPI, not the 90 DPI the width alone suggests.
 
 ## Identity and mapping
 

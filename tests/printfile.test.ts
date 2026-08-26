@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_PRINT_FILE_POLICY,
   effectiveDpi,
+  validatePlacedPrint,
   validatePrintFile,
   type ArtworkMetadata,
 } from '../src/core/printfile.ts';
@@ -114,5 +115,107 @@ describe('validatePrintFile', () => {
     );
     expect(result.acceptable).toBe(false);
     expect(result.errors.join(' ')).toMatch(/above the/);
+  });
+});
+
+describe('upscaled and padded files cannot fake resolution', () => {
+  it('computes effective DPI from native pixels, not the delivered canvas', () => {
+    // A 1080px original placed on the supplier's full 3600x4800 canvas. Without
+    // native tracking this reports a comfortable 300 DPI and passes.
+    const padded: ArtworkMetadata = {
+      widthPx: 3600,
+      heightPx: 4800,
+      nativeWidthPx: 1080,
+      nativeHeightPx: 1080,
+      format: 'png',
+      colourSpace: 'srgb',
+      hasAlpha: true,
+      fileSizeBytes: 4_000_000,
+      declaredDpi: 300,
+    };
+    const result = validatePrintFile(padded, frontArea);
+    expect(result.acceptable).toBe(false);
+    // 1080px across a 16in tall placement is the binding dimension: 67.5 DPI.
+    expect(result.effectiveDpi!).toBeCloseTo(67.5, 1);
+    expect(result.warnings.join(' ')).toMatch(/upscale of a 1080x1080px original/);
+  });
+
+  it('still trusts the file dimensions when no native resolution is recorded', () => {
+    const result = validatePrintFile(goodArtwork, frontArea);
+    expect(result.effectiveDpi).toBe(300);
+    expect(result.acceptable).toBe(true);
+  });
+});
+
+describe('validatePlacedPrint', () => {
+  const source: ArtworkMetadata = {
+    widthPx: 1080,
+    heightPx: 1080,
+    format: 'png',
+    colourSpace: 'srgb',
+    hasAlpha: false,
+    fileSizeBytes: 1_100_000,
+    declaredDpi: 150,
+  };
+
+  it('reports the largest printable size for the resolution available', () => {
+    const result = validatePlacedPrint(source, {
+      placement: 'front',
+      widthMm: 180,
+      heightMm: 180,
+    });
+    expect(result.maxWidthMmAtFloor).toBeCloseTo(182.9, 1);
+    expect(result.maxWidthMmAtPreferred).toBeCloseTo(91.4, 1);
+  });
+
+  it('accepts a size just above the DPI floor with a sample warning', () => {
+    const result = validatePlacedPrint(source, {
+      placement: 'front',
+      widthMm: 180,
+      heightMm: 180,
+    });
+    expect(result.acceptable).toBe(true);
+    expect(result.effectiveDpi!).toBeCloseTo(152.4, 1);
+    expect(result.warnings.join(' ')).toMatch(/Order a physical sample/);
+  });
+
+  it('refuses a size below the DPI floor and names the largest that works', () => {
+    const result = validatePlacedPrint(source, {
+      placement: 'front',
+      widthMm: 280,
+      heightMm: 280,
+    });
+    expect(result.acceptable).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/below the 150 DPI floor/);
+    expect(result.errors.join(' ')).toMatch(/smaller than 183mm/);
+  });
+
+  it('rejects a size fractionally below the floor rather than rounding to pass', () => {
+    // 183mm is 149.9 DPI. The floor is a floor.
+    const result = validatePlacedPrint(source, {
+      placement: 'front',
+      widthMm: 183,
+      heightMm: 183,
+    });
+    expect(result.acceptable).toBe(false);
+  });
+
+  it('refuses a placement whose proportions differ from the artwork', () => {
+    const result = validatePlacedPrint(source, {
+      placement: 'front',
+      widthMm: 180,
+      heightMm: 240,
+    });
+    expect(result.acceptable).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/stretched or cropped/);
+  });
+
+  it('warns that an opaque file needs a white underbase on dark garments', () => {
+    const result = validatePlacedPrint(source, {
+      placement: 'front',
+      widthMm: 91,
+      heightMm: 91,
+    });
+    expect(result.warnings.join(' ')).toMatch(/white underbase/);
   });
 });

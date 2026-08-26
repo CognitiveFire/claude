@@ -9,6 +9,7 @@
 import { audit } from '../observability/audit.ts';
 import { logger } from '../observability/logger.ts';
 import type { PrintFileValidationResult } from '../ports/producer.ts';
+import { validatePlacedPrint } from '../core/printfile.ts';
 import {
   getArtwork,
   insertProducerProduct,
@@ -28,6 +29,13 @@ export interface ProposeProductInput {
   readonly placement: string;
   readonly sizes: readonly string[];
   readonly colour: string | null;
+  /**
+   * Intended printed width in mm. When set, the artwork is validated at THAT
+   * size rather than against filling the supplier's whole print area — which is
+   * the right question for a chest print, and the only question that reflects
+   * what the customer receives.
+   */
+  readonly printWidthMm: number | null;
 }
 
 export interface ProposeProductResult {
@@ -38,6 +46,9 @@ export interface ProposeProductResult {
   readonly variantCount: number;
   readonly skippedSizes: readonly string[];
   readonly printFile: PrintFileValidationResult;
+  /** Largest printable width at the DPI floor and at the preferred DPI. */
+  readonly maxWidthMmAtFloor: number | null;
+  readonly maxWidthMmAtPreferred: number | null;
   readonly provenance: 'LIVE_API' | 'FIXTURE';
 }
 
@@ -110,6 +121,53 @@ export async function proposeProduct(
     format: artwork.format ?? 'unknown',
   });
 
+  // When a printed size is specified, that size — not "does it fill the whole
+  // placement" — is what determines what the customer receives.
+  let effective: PrintFileValidationResult = printFile.data;
+  let maxWidthMmAtFloor: number | null = null;
+  let maxWidthMmAtPreferred: number | null = null;
+
+  if (input.printWidthMm !== null) {
+    const placed = validatePlacedPrint(
+      {
+        widthPx: artwork.widthPx,
+        heightPx: artwork.heightPx,
+        format: artwork.format ?? 'unknown',
+        colourSpace: artwork.colourSpace,
+        hasAlpha: artwork.hasAlpha,
+        fileSizeBytes: artwork.fileSizeBytes,
+        declaredDpi: artwork.declaredDpi,
+      },
+      {
+        placement: input.placement,
+        widthMm: input.printWidthMm,
+        heightMm: (input.printWidthMm * artwork.heightPx) / artwork.widthPx,
+      },
+    );
+    maxWidthMmAtFloor = placed.maxWidthMmAtFloor;
+    maxWidthMmAtPreferred = placed.maxWidthMmAtPreferred;
+
+    const errors = [...placed.errors];
+    const warnings = [...placed.warnings];
+
+    // The requested size must also physically fit the supplier's print area.
+    const area = printFile.data.printArea;
+    if (area?.widthMm != null && input.printWidthMm > area.widthMm) {
+      errors.push(
+        `Requested print width ${input.printWidthMm}mm exceeds the supplier's ` +
+          `"${input.placement}" print area of ${area.widthMm}mm.`,
+      );
+    }
+
+    effective = {
+      acceptable: errors.length === 0,
+      effectiveDpi: placed.effectiveDpi,
+      errors,
+      warnings,
+      printArea: printFile.data.printArea,
+    };
+  }
+
   const producerRowId = await upsertProducer(context.db, producer.id, producer.displayName);
   const productId = await insertProduct(context.db, {
     artworkId: input.artworkId,
@@ -145,12 +203,13 @@ export async function proposeProduct(
     action: 'product.propose',
     entityType: 'product',
     entityId: productId,
-    outcome: printFile.data.acceptable ? 'SUCCESS' : 'BLOCKED',
+    outcome: effective.acceptable ? 'SUCCESS' : 'BLOCKED',
     after: {
       producer: producer.id,
       producerProductId: candidate.producerProductId,
       variants: selected.length,
-      printFileAcceptable: printFile.data.acceptable,
+      printFileAcceptable: effective.acceptable,
+      printWidthMm: input.printWidthMm,
       provenance: search.provenance,
     },
     externalResponse: search.raw,
@@ -163,7 +222,9 @@ export async function proposeProduct(
     catalogueName: candidate.name,
     variantCount: selected.length,
     skippedSizes,
-    printFile: printFile.data,
+    printFile: effective,
+    maxWidthMmAtFloor,
+    maxWidthMmAtPreferred,
     provenance: search.provenance,
   };
 }
