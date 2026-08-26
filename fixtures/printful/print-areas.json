@@ -1,0 +1,22 @@
+{
+  "_provenance": "SYNTHETIC",
+  "_warning": "SYNTHETIC PLACEHOLDER \u2014 NOT A RECORDED SUPPLIER RESPONSE. The costs below are invented shapes for offline testing and must never be treated as real supplier prices. Adapters serving this file report provenance=FIXTURE, which blocks publication.",
+  "data": [
+    {
+      "placement": "front",
+      "width": 3600,
+      "height": 4800,
+      "dpi": 300,
+      "width_mm": 305,
+      "height_mm": 406
+    },
+    {
+      "placement": "back",
+      "width": 3600,
+      "height": 4800,
+      "dpi": 300,
+      "width_mm": 305,
+      "height_mm": 406
+    }
+  ]
+}

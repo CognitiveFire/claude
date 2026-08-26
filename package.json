@@ -1,0 +1,30 @@
+{
+  "name": "indie-archive",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Indie Archive — artwork to automatically fulfilled merchandise.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "ia": "node --experimental-strip-types --no-warnings src/cli/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "drizzle-orm": "^0.36.4",
+    "pg": "^8.13.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.28.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.5"
+  }
+}

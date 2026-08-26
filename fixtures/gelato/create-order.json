@@ -1,0 +1,16 @@
+{
+  "_provenance": "SYNTHETIC",
+  "_warning": "SYNTHETIC PLACEHOLDER \u2014 NOT A RECORDED SUPPLIER RESPONSE. The costs below are invented shapes for offline testing and must never be treated as real supplier prices. Adapters serving this file report provenance=FIXTURE, which blocks publication.",
+  "id": "gl_order_5001",
+  "orderReferenceId": "ia-order-placeholder",
+  "fulfillmentStatus": "created",
+  "currency": "GBP",
+  "receipts": [
+    {
+      "productsPriceInclVat": "12.24",
+      "shippingPriceInclVat": "5.34",
+      "totalVat": "2.93",
+      "totalInclVat": "17.58"
+    }
+  ]
+}

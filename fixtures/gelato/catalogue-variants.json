@@ -1,0 +1,50 @@
+{
+  "_provenance": "SYNTHETIC",
+  "_warning": "SYNTHETIC PLACEHOLDER \u2014 NOT A RECORDED SUPPLIER RESPONSE. The costs below are invented shapes for offline testing and must never be treated as real supplier prices. Adapters serving this file report provenance=FIXTURE, which blocks publication.",
+  "variants": [
+    {
+      "productUid": "apparel_variant_s_black",
+      "title": "Creator 2.0 Black S",
+      "sku": "GL-STTU169-BLK-S",
+      "status": "available",
+      "attributes": {
+        "GarmentSize": "S",
+        "GarmentColor": "Black",
+        "GarmentColorHex": "#000000"
+      }
+    },
+    {
+      "productUid": "apparel_variant_m_black",
+      "title": "Creator 2.0 Black M",
+      "sku": "GL-STTU169-BLK-M",
+      "status": "available",
+      "attributes": {
+        "GarmentSize": "M",
+        "GarmentColor": "Black",
+        "GarmentColorHex": "#000000"
+      }
+    },
+    {
+      "productUid": "apparel_variant_l_black",
+      "title": "Creator 2.0 Black L",
+      "sku": "GL-STTU169-BLK-L",
+      "status": "available",
+      "attributes": {
+        "GarmentSize": "L",
+        "GarmentColor": "Black",
+        "GarmentColorHex": "#000000"
+      }
+    },
+    {
+      "productUid": "apparel_variant_xl_black",
+      "title": "Creator 2.0 Black XL",
+      "sku": "GL-STTU169-BLK-XL",
+      "status": "available",
+      "attributes": {
+        "GarmentSize": "XL",
+        "GarmentColor": "Black",
+        "GarmentColorHex": "#000000"
+      }
+    }
+  ]
+}

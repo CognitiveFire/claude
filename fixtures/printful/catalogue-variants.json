@@ -1,0 +1,46 @@
+{
+  "_provenance": "SYNTHETIC",
+  "_warning": "SYNTHETIC PLACEHOLDER \u2014 NOT A RECORDED SUPPLIER RESPONSE. The costs below are invented shapes for offline testing and must never be treated as real supplier prices. Adapters serving this file report provenance=FIXTURE, which blocks publication.",
+  "data": [
+    {
+      "id": "10001",
+      "catalog_product_id": "679",
+      "name": "Creator 2.0 / Black / S",
+      "size": "S",
+      "color": "Black",
+      "color_code": "#000000",
+      "sku": "STTU169-BLK-S",
+      "availability": "in_stock"
+    },
+    {
+      "id": "10002",
+      "catalog_product_id": "679",
+      "name": "Creator 2.0 / Black / M",
+      "size": "M",
+      "color": "Black",
+      "color_code": "#000000",
+      "sku": "STTU169-BLK-M",
+      "availability": "in_stock"
+    },
+    {
+      "id": "10003",
+      "catalog_product_id": "679",
+      "name": "Creator 2.0 / Black / L",
+      "size": "L",
+      "color": "Black",
+      "color_code": "#000000",
+      "sku": "STTU169-BLK-L",
+      "availability": "in_stock"
+    },
+    {
+      "id": "10004",
+      "catalog_product_id": "679",
+      "name": "Creator 2.0 / Black / XL",
+      "size": "XL",
+      "color": "Black",
+      "color_code": "#000000",
+      "sku": "STTU169-BLK-XL",
+      "availability": "in_stock"
+    }
+  ]
+}
