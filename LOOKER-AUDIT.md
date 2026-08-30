@@ -33,8 +33,8 @@
 | ds39 | `all_cost` | BigQuery | 0 charts | Working |
 | ds40 | `agency_cost combined brand to CC and CL` | BigQuery | 0 charts | Working |
 | ds10 | `master_ecommerce_funnel` | BigQuery | 0 charts | Working |
-| ds29 | `Stephan Test` | BigQuery | **1 chart** | Working |
-| ds37 | `t_all_cost_raw` | BigQuery | **6 charts** | Working |
+| ds29 | `Stephan Test` | BigQuery (Custom SQL PIVOT on `gtm-p2k7nfgh-odvmo.cost_data.t_all_cost_brand_split`) | **1 chart** (Page 4 bar chart) | Working |
+| ds37 | `t_all_cost_raw` | BigQuery (`gtm-p2k7nfgh-odvmo.cost_data.t_all_cost_raw`) | **6 charts** | Working |
 | ds41 | `Finnland Search Ads 360` | NEW Search Ads 360 | 0 charts | Working |
 | ds42 | `agency_cost` | BigQuery | 0 charts | Working |
 | ds43 | `t_daily_targets` | BigQuery | 0 charts | Working |
@@ -319,8 +319,8 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 |---|-----|--------|-----------------|
 | G1 | Connector type for `all_cost_brand_split` and `all_cost_raw` | ✅ Resolved — both BigQuery, both orphaned (0 charts). Active cost source is `t_all_cost_raw` (ds37, BigQuery). | — |
 | G2 | Full formula for calculated fields `Brand Media Spend` and `Brand per product` on `Master_CM360_Report` | ⚠️ Open | Phase 1 spec — must replicate exactly |
-| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Partially resolved — GCP project confirmed as `940283144168`. GA4 export datasets confirmed: `analytics_425220901` (NO), `analytics_426278660` (SE), `analytics_426283265` (FI). Cost table (`t_all_cost_raw`) is likely in a separate marketing/reporting dataset in the same project. BQ dataViewer access requested from Stephan; pending grant. | Phase 1 spec — it drives 6 charts |
-| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ⚠️ Open — ask Stephan to identify and rename. | One chart depends on an unidentified dev source |
+| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ✅ Resolved — BQ project `gtm-p2k7nfgh-odvmo`, dataset `cost_data`, table `t_all_cost_raw`. Row-level cost data (pre-pivot). Fields include: `google_ads_cost`, `jellyfish_cost`, `sa360_fees`, `bing_cost`, `agency_fees`, `adtraction_spend`, `dv360_advertiser`, `product`, `date`. | — |
+| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ✅ Resolved — drives the **Page 4 bar chart** (cost by product/market segment). Custom SQL PIVOT on `gtm-p2k7nfgh-odvmo.cost_data.t_all_cost_brand_split`. Source name is a development artefact — the query was written to validate pivot logic matches the Looker Studio calculated fields. Should be renamed `cost_by_product_market_pivot` in Phase 2 copy. | — |
 | G5 | Owner credentials confirmed: Stephan (Morrow Bank client) owns the BQ project and all sources run on his account. This is expected. | ✅ Resolved — no action needed | — |
 | G6 | `dv360_advertiser` filter on Page 1 — hardcoded page filter or control? | ⚠️ Open | If hardcoded, FI/SE data is hidden even when Market = FI/SE |
 | G7 | Data source for Bookings (Booked column, Credit Limit, paid-out volume) | ⚠️ Likely `master_ecommerce_funnel` (ds10, BigQuery) built on GA4 exports (`analytics_425220901/426278660/426283265`) from GCP project `940283144168`. Confirm once BQ access is granted. | Phase 1 — field mapping |
@@ -332,7 +332,35 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 
 ---
 
-## 6. Observations for Phase 1 Spec
+## 6. Cost Field Mapping (confirmed from `t_all_cost_brand_split` custom query)
+
+The `total_cost_calculated` metric used throughout the report is:
+
+```
+IFNULL(google_ads_cost, 0)
++ IFNULL(jellyfish_cost, 0)
++ IFNULL(sa360_fees, 0)
++ IFNULL(bing_cost, 0)
++ IFNULL(agency_fees, 0)
++ IFNULL(adtraction_spend, 0)
+```
+
+Page 4 column → BQ field mapping:
+
+| Page 4 column label | BQ field in `cost_data` |
+|--------------------|------------------------|
+| Google Ads | `google_ads_cost` |
+| DV360 / JellyFish | `jellyfish_cost` |
+| SA360 / JellyFish | `sa360_fees` |
+| Bing Ads / AllDigital | `bing_cost` |
+| Apriil | `agency_fees` |
+| Affiliate / Adtraction | `adtraction_spend` |
+
+Date filtering: `WHERE date BETWEEN PARSE_DATE('%Y%m%d', @DS_START_DATE) AND PARSE_DATE('%Y%m%d', @DS_END_DATE)` — driven by the report date picker control. Legacy SQL: **off** (standard SQL). Viewer email parameter: **off**.
+
+---
+
+## 7. Observations for Phase 1 Spec
 
 1. **Currency mixing on Page 4** — all three markets shown in local currency (NOK/SEK/EUR) in the same table with no conversion. A EUR-equivalent column would make cross-market comparison meaningful.
 2. **Page 2/3 scope** — both pages are filtered to NO - Morrow Bank only. SE and FI have no equivalent product-level performance pages. The spec should decide whether to add them or keep NO-only.
@@ -343,7 +371,7 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 
 ---
 
-## 7. Data Sources Not Yet in Report — Flagged for Phase 1 Spec Decision
+## 8. Data Sources Not Yet in Report — Flagged for Phase 1 Spec Decision
 
 | Source | Status | Notes |
 |--------|--------|-------|
