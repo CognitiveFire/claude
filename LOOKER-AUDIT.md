@@ -1,7 +1,7 @@
 # Looker Studio Audit — New Exec Dash
 **Audit date:** 2026-08-30  
 **Auditor:** Claude (Phase 0 read-only)  
-**Source:** PDF export of report, plus edit-mode screenshot supplied by user (Matthew Robinson, Apriil)  
+**Source:** PDF export of report, edit-mode screenshot, and Resources → Manage data sources panel — all supplied by user (Matthew Robinson, Apriil)  
 **Report URL:** https://datastudio.google.com/reporting/4cd67fb9-9529-404c-be2c-cb2abe160e22  
 **Report name:** New Exec Dash  
 **Status:** READ-ONLY. No edits made. No data sources touched.
@@ -21,16 +21,52 @@
 
 ## 2. Data Sources
 
-From the edit-mode data panel, four data sources are attached to this report:
+**18 data sources are attached to this report.** All are Embedded (not reusable). The Manage data sources panel shows:
 
-| # | Name in report | Connector type | Notes |
-|---|----------------|----------------|-------|
-| 1 | `Master_CM360_Report` | Campaign Manager 360 | Primary source. Used on Pages 1, 2, 3. Fields include DV360 dimensions, clicks, impressions, costs, product, funnel_step. |
-| 2 | `all_cost_brand_split` | Unknown — likely a Blend | Appears alongside `all_cost_raw` in the data panel with a different icon (funnel/blend icon). Likely blends CM360 cost with a brand-split parameter or lookup. |
-| 3 | `Norway Search Ads 360` | Search Ads 360 (SA360) | Used for `actual_sa36...` column on Page 1. Norway-scoped SA360 connector. |
-| 4 | `all_cost_raw` | Unknown — likely a Blend or Google Sheets | Raw cost data before brand split. Used on Page 4 cost breakdown table. |
+| Alias | Name | Connector | Used in report | Status |
+|-------|------|-----------|----------------|--------|
+| ds0 | `Master_CM360_Report` | BigQuery | **1 chart** | Working |
+| ds31 | `all_cost_brand_split` | BigQuery | 0 charts | Working |
+| ds32 | `Norway Search Ads 360` | NEW Search Ads 360 | 0 charts | Working |
+| ds33 | `all_cost_raw` | BigQuery | 0 charts | Working |
+| ds35 | `Fixed Cost - Fixed Cost` | Google Sheets | 0 charts | Working |
+| ds39 | `all_cost` | BigQuery | 0 charts | Working |
+| ds40 | `agency_cost combined brand to CC and CL` | BigQuery | 0 charts | Working |
+| ds10 | `master_ecommerce_funnel` | BigQuery | 0 charts | Working |
+| ds29 | `Stephan Test` | BigQuery | **1 chart** | Working |
+| ds37 | `t_all_cost_raw` | BigQuery | **6 charts** | Working |
+| ds41 | `Finnland Search Ads 360` | NEW Search Ads 360 | 0 charts | Working |
+| ds42 | `agency_cost` | BigQuery | 0 charts | Working |
+| ds43 | `t_daily_targets` | BigQuery | 0 charts | Working |
+| ds44 | `Agency Cost - Sheet2` | Google Sheets | 0 charts | Working |
+| ds30 | `CSV Product Export` | BigQuery | 0 charts | Working |
+| ds45 | `all_cost_brand_split` | BigQuery | 0 charts | Working |
+| ds46 | `NO KPI` | BigQuery | 0 charts | Working |
+| ds34 | `t_daily_targets` | BigQuery | **1 chart** | Working |
 
-> **Gap:** Connector type (live vs extract, owner credentials vs viewer credentials, refresh schedule) for sources 2 and 4 cannot be confirmed from a PDF export alone. A screenshot of **Resources → Manage data sources** is needed to complete this section.
+### Critical findings from this panel
+
+**Only 4 sources are actively driving charts:**
+
+| Alias | Name | Charts driven | Role |
+|-------|------|---------------|------|
+| ds37 | `t_all_cost_raw` | 6 | **Primary source** — all cost tables and trend charts |
+| ds0 | `Master_CM360_Report` | 1 | CM360 data (impressions, clicks, DV360 dims) |
+| ds34 | `t_daily_targets` | 1 | Target lines in bullet/progress charts |
+| ds29 | `Stephan Test` | 1 | ⚠️ **Named "Stephan Test" — likely a dev/test source in production** |
+
+**14 data sources are orphans (0 charts, 0 variables)** — they are attached but drive nothing. These include both `all_cost_brand_split` entries (ds31, ds45), `all_cost_raw` (ds33), `Norway Search Ads 360` (ds32), `Finnland Search Ads 360` (ds41), and 9 others. These should be reviewed and removed to reduce confusion.
+
+**Duplicates:**
+- `all_cost_brand_split` appears twice: ds31 and ds45 — both orphaned
+- `t_daily_targets` appears twice: ds43 (0 charts, orphan) and ds34 (1 chart, active)
+
+**Connector types confirmed:**
+- 14 × BigQuery (all embedded)
+- 2 × NEW Search Ads 360 (Norway ds32, Finland ds41 — both orphaned)
+- 2 × Google Sheets (`Fixed Cost - Fixed Cost` ds35, `Agency Cost - Sheet2` ds44 — both orphaned)
+
+> **Action item for Phase 1:** Clarify what BigQuery dataset/table `t_all_cost_raw` (ds37) queries. It drives 6 of 9 active charts and is the report's primary source. Its BQ project, dataset, and table name need to be documented.
 
 ### 2a. Fields on Master_CM360_Report (visible in edit panel)
 
@@ -279,18 +315,20 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 
 ## 5. Known Gaps / Open Questions for Phase 1
 
-| # | Gap | Where it matters |
-|---|-----|-----------------|
-| G1 | Connector type for `all_cost_brand_split` and `all_cost_raw` (Google Sheets? Manual upload? Blend?) | Phase 1 spec — data freshness and maintenance burden |
-| G2 | Full formula for calculated fields `Brand Media Spend` and `Brand per product` | Phase 1 spec — must replicate exactly |
-| G3 | Blend join key(s) and join type (left/inner) for any blends | Phase 1 spec — silent row drops if join is wrong |
-| G4 | Owner vs viewer credentials on each data source | Phase 1 — access management |
-| G5 | `dv360_advertiser` filter on Page 1 — is it a saved page-level filter or a control? | Phase 1 — if hardcoded, FI/SE data hidden even when Market = FI/SE |
-| G6 | Data source for Bookings (Booked column, volume figures) — not CM360 | Phase 1 — need to identify connector and field mapping |
-| G7 | Full column header text for truncated labels on Page 1 table | Phase 1 spec accuracy |
-| G8 | Target values for bullet charts (13.8M loan, 713 CC) — hardcoded or from a data source? | Phase 1 — if hardcoded, monthly update is manual |
-| G9 | NO Refinance — why zero in July? Paused campaigns? | Reporting accuracy check |
-| G10 | SE Credit Cards — zero spend July. Expected or missing data? | Reporting accuracy check |
+| # | Gap | Status | Where it matters |
+|---|-----|--------|-----------------|
+| G1 | Connector type for `all_cost_brand_split` and `all_cost_raw` | ✅ Resolved — both BigQuery, both orphaned (0 charts). Active cost source is `t_all_cost_raw` (ds37, BigQuery). | — |
+| G2 | Full formula for calculated fields `Brand Media Spend` and `Brand per product` on `Master_CM360_Report` | ⚠️ Open | Phase 1 spec — must replicate exactly |
+| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Open — most important gap | Phase 1 spec — it drives 6 charts |
+| G4 | What chart does `Stephan Test` (ds29) drive? Is it safe to rely on? | ⚠️ Open — name suggests dev/test | Production stability risk |
+| G5 | Owner credentials on BigQuery data sources — who owns the BQ connection? | ⚠️ Open | Access management if ownership changes |
+| G6 | `dv360_advertiser` filter on Page 1 — hardcoded page filter or control? | ⚠️ Open | If hardcoded, FI/SE data is hidden even when Market = FI/SE |
+| G7 | Data source for Bookings (Booked column, Credit Limit, paid-out volume) — likely `master_ecommerce_funnel` (ds10) or `t_all_cost_raw`? | ⚠️ Open | Phase 1 — connector and field mapping |
+| G8 | Full column header text for truncated labels on Page 1 table ("Media Sp...", "actual_sa36...") | ⚠️ Open | Phase 1 spec accuracy |
+| G9 | Target values for bullet charts (13.8M loan, 713 CC) — `t_daily_targets` (ds34) or hardcoded? | ⚠️ Open — likely ds34 | Phase 1 — monthly update process |
+| G10 | 14 orphaned data sources — should they be removed before copy is taken? | ⚠️ Open | Clean copy for Phase 2 |
+| G11 | NO Refinance — zero spend in July despite campaign history | ⚠️ Open | Reporting accuracy |
+| G12 | SE Credit Cards — zero spend July in Page 4 table | ⚠️ Open | Reporting accuracy |
 
 ---
 
