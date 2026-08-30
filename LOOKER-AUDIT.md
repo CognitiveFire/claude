@@ -66,7 +66,7 @@
 - 2 × NEW Search Ads 360 (Norway ds32, Finland ds41 — both orphaned)
 - 2 × Google Sheets (`Fixed Cost - Fixed Cost` ds35, `Agency Cost - Sheet2` ds44 — both orphaned)
 
-> **Critical governance finding:** When clicking Edit on `t_all_cost_raw` (ds37), Looker Studio shows "Failed to fetch projects — please enter the project ID manually." This confirms the source uses **owner credentials from a different Google account** (not the current editor's). The BQ project/dataset/table are not visible to the editor. The report continues to serve data only because the original owner's credentials are still active in the background. If that account is deactivated or loses BQ access, the report will break silently. The owner account identity needs to be identified and documented. **Do not click Reconnect** — doing so would reassign credentials to the editor's account; if that account lacks BQ access, the 6 charts powered by this source will go blank.
+> **Credentials confirmed normal:** This is a copy of the dashboard made by Stephan (the Morrow Bank client) for Apriil to work on. All BigQuery data sources run on Stephan's owner credentials — he owns the underlying BQ project. The "Failed to fetch projects" prompt appears only because the current editor (Apriil) does not have direct BQ access, which is expected. The report functions correctly. **Do not click Reconnect** — doing so would reassign credentials to the editor's account and break the live data connection. The BQ project/dataset/table names need to be obtained from Stephan directly, or via the schema view inside the data source editor (Edit → fields view, not the connector picker).
 
 ### 2a. Fields on Master_CM360_Report (visible in edit panel)
 
@@ -319,9 +319,9 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 |---|-----|--------|-----------------|
 | G1 | Connector type for `all_cost_brand_split` and `all_cost_raw` | ✅ Resolved — both BigQuery, both orphaned (0 charts). Active cost source is `t_all_cost_raw` (ds37, BigQuery). | — |
 | G2 | Full formula for calculated fields `Brand Media Spend` and `Brand per product` on `Master_CM360_Report` | ⚠️ Open | Phase 1 spec — must replicate exactly |
-| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Open — most important gap | Phase 1 spec — it drives 6 charts |
-| G4 | What chart does `Stephan Test` (ds29) drive? Is it safe to rely on? | ⚠️ Open — name suggests dev/test | Production stability risk |
-| G5 | Owner credentials on BigQuery data sources — who owns the BQ connection? | ⚠️ Open | Access management if ownership changes |
+| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Open — ask Stephan or view schema in Edit mode (fields view, not connector picker) | Phase 1 spec — it drives 6 charts |
+| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ⚠️ Open — source name suggests development artefact; ask Stephan to clarify/rename | One chart depends on an unidentified dev source |
+| G5 | Owner credentials confirmed: Stephan (Morrow Bank client) owns the BQ project and all sources run on his account. This is expected. | ✅ Resolved — no action needed | — |
 | G6 | `dv360_advertiser` filter on Page 1 — hardcoded page filter or control? | ⚠️ Open | If hardcoded, FI/SE data is hidden even when Market = FI/SE |
 | G7 | Data source for Bookings (Booked column, Credit Limit, paid-out volume) — likely `master_ecommerce_funnel` (ds10) or `t_all_cost_raw`? | ⚠️ Open | Phase 1 — connector and field mapping |
 | G8 | Full column header text for truncated labels on Page 1 table ("Media Sp...", "actual_sa36...") | ⚠️ Open | Phase 1 spec accuracy |
