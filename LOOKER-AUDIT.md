@@ -319,8 +319,8 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 |---|-----|--------|-----------------|
 | G1 | Connector type for `all_cost_brand_split` and `all_cost_raw` | ✅ Resolved — both BigQuery, both orphaned (0 charts). Active cost source is `t_all_cost_raw` (ds37, BigQuery). | — |
 | G2 | Full formula for calculated fields `Brand Media Spend` and `Brand per product` on `Master_CM360_Report` | ⚠️ Open | Phase 1 spec — must replicate exactly |
-| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Open — ask Stephan or view schema in Edit mode (fields view, not connector picker) | Phase 1 spec — it drives 6 charts |
-| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ⚠️ Open — source name suggests development artefact; ask Stephan to clarify/rename | One chart depends on an unidentified dev source |
+| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Open — Apriil editor cannot open data source (insufficient Looker Studio access level) and BQ project is no longer linked. **Ask Stephan to confirm project/dataset/table name.** | Phase 1 spec — it drives 6 charts |
+| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ⚠️ Open — same access constraint. **Ask Stephan to identify and rename this source.** | One chart depends on an unidentified dev source |
 | G5 | Owner credentials confirmed: Stephan (Morrow Bank client) owns the BQ project and all sources run on his account. This is expected. | ✅ Resolved — no action needed | — |
 | G6 | `dv360_advertiser` filter on Page 1 — hardcoded page filter or control? | ⚠️ Open | If hardcoded, FI/SE data is hidden even when Market = FI/SE |
 | G7 | Data source for Bookings (Booked column, Credit Limit, paid-out volume) — likely `master_ecommerce_funnel` (ds10) or `t_all_cost_raw`? | ⚠️ Open | Phase 1 — connector and field mapping |
