@@ -66,7 +66,7 @@
 - 2 × NEW Search Ads 360 (Norway ds32, Finland ds41 — both orphaned)
 - 2 × Google Sheets (`Fixed Cost - Fixed Cost` ds35, `Agency Cost - Sheet2` ds44 — both orphaned)
 
-> **Action item for Phase 1:** Clarify what BigQuery dataset/table `t_all_cost_raw` (ds37) queries. It drives 6 of 9 active charts and is the report's primary source. Its BQ project, dataset, and table name need to be documented.
+> **Critical governance finding:** When clicking Edit on `t_all_cost_raw` (ds37), Looker Studio shows "Failed to fetch projects — please enter the project ID manually." This confirms the source uses **owner credentials from a different Google account** (not the current editor's). The BQ project/dataset/table are not visible to the editor. The report continues to serve data only because the original owner's credentials are still active in the background. If that account is deactivated or loses BQ access, the report will break silently. The owner account identity needs to be identified and documented. **Do not click Reconnect** — doing so would reassign credentials to the editor's account; if that account lacks BQ access, the 6 charts powered by this source will go blank.
 
 ### 2a. Fields on Master_CM360_Report (visible in edit panel)
 
