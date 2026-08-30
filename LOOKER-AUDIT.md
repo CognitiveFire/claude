@@ -319,11 +319,11 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 |---|-----|--------|-----------------|
 | G1 | Connector type for `all_cost_brand_split` and `all_cost_raw` | ✅ Resolved — both BigQuery, both orphaned (0 charts). Active cost source is `t_all_cost_raw` (ds37, BigQuery). | — |
 | G2 | Full formula for calculated fields `Brand Media Spend` and `Brand per product` on `Master_CM360_Report` | ⚠️ Open | Phase 1 spec — must replicate exactly |
-| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Open — Apriil editor cannot open data source (insufficient Looker Studio access level) and BQ project is no longer linked. **Ask Stephan to confirm project/dataset/table name.** | Phase 1 spec — it drives 6 charts |
-| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ⚠️ Open — same access constraint. **Ask Stephan to identify and rename this source.** | One chart depends on an unidentified dev source |
+| G3 | BigQuery project/dataset/table behind `t_all_cost_raw` (ds37) | ⚠️ Partially resolved — GCP project confirmed as `940283144168`. GA4 export datasets confirmed: `analytics_425220901` (NO), `analytics_426278660` (SE), `analytics_426283265` (FI). Cost table (`t_all_cost_raw`) is likely in a separate marketing/reporting dataset in the same project. BQ dataViewer access requested from Stephan; pending grant. | Phase 1 spec — it drives 6 charts |
+| G4 | What chart does `Stephan Test` (ds29) drive, and what BQ table is it? | ⚠️ Open — ask Stephan to identify and rename. | One chart depends on an unidentified dev source |
 | G5 | Owner credentials confirmed: Stephan (Morrow Bank client) owns the BQ project and all sources run on his account. This is expected. | ✅ Resolved — no action needed | — |
 | G6 | `dv360_advertiser` filter on Page 1 — hardcoded page filter or control? | ⚠️ Open | If hardcoded, FI/SE data is hidden even when Market = FI/SE |
-| G7 | Data source for Bookings (Booked column, Credit Limit, paid-out volume) — likely `master_ecommerce_funnel` (ds10) or `t_all_cost_raw`? | ⚠️ Open | Phase 1 — connector and field mapping |
+| G7 | Data source for Bookings (Booked column, Credit Limit, paid-out volume) | ⚠️ Likely `master_ecommerce_funnel` (ds10, BigQuery) built on GA4 exports (`analytics_425220901/426278660/426283265`) from GCP project `940283144168`. Confirm once BQ access is granted. | Phase 1 — field mapping |
 | G8 | Full column header text for truncated labels on Page 1 table ("Media Sp...", "actual_sa36...") | ⚠️ Open | Phase 1 spec accuracy |
 | G9 | Target values for bullet charts (13.8M loan, 713 CC) — `t_daily_targets` (ds34) or hardcoded? | ⚠️ Open — likely ds34 | Phase 1 — monthly update process |
 | G10 | 14 orphaned data sources — should they be removed before copy is taken? | ⚠️ Open | Clean copy for Phase 2 |
@@ -340,6 +340,15 @@ Sample values (Jul 2026 daily cost): 4.2K → 14.7K peak, closing at 7.8K on Jul
 4. **Deposit treatment** — Deposit appears in Page 1 table (0 spend, 173 bookings in NO) and Page 4 bar chart. Client confirmed they are not interested in deposit campaigns. Consider whether Deposit should be filtered out or kept as a zero row for completeness.
 5. **CAC vs MER labelling** — Page 2 includes a large explanatory text box distinguishing CAC from MER. This is valuable context but takes significant canvas space. Phase 1 spec should decide placement.
 6. **Truncated column headers** — "Media Sp...", "actual_sa36..." — full names needed from the data source before building the spec.
+
+---
+
+## 7. Data Sources Not Yet in Report — Flagged for Phase 1 Spec Decision
+
+| Source | Status | Notes |
+|--------|--------|-------|
+| Google Search Console | Access confirmed (Stephan: "you should have access") | Could add organic search impression/click data alongside paid |
+| Decline / disqualification reasons | **Not available** — lives in Stephan's DWH, "a pain to get out" (Stephan's words). No commitment to deliver before Friday workshop. | Defer to Phase 2 or later unless Stephan prioritises |
 
 ---
 
