@@ -16,11 +16,10 @@ Product must resolve to the same string in every data source or a page-level pro
 
 **Canonical product list (exact strings):**
 ```
-Consumer Loan
+Consumer Loan      ← includes Flex Credit / Flex Loan (same product, different label)
 Credit Card
 Refinance
 Deposit
-Flex Loan
 Refinance Existing
 Unmapped
 ```
@@ -34,10 +33,10 @@ Unmapped
 | Refinance | ✓ | — | — |
 | Deposit / Savings | ✓ | — | ✓ |
 | Refinance Existing | ✓ | — | — |
-| Flex Loan | — | — | — |
+| Flex Loan / Flex Credit | ✓ | ✓ | ✓ |
 
 Sources: Google Ads active/paused campaigns per account, CM360 Floodlight activity names, morrowbank.se product pages (2026-08-31 — no Credit Card listed).
-Flex Loan: no campaigns or Floodlight activities found in any market — treat as inactive/deprecated until confirmed.
+"Flex Credit" on the website = "Flex Loan" in data = maps to **Consumer Loan** in the canonical product list. Do not create a separate canonical value — roll into Consumer Loan.
 Rows with `—` will not appear in Floodlight data for that market — this is expected; not an Unmapped gap.
 
 `Unmapped` is always present and is never filtered out. It is the bucket for rows where the derivation logic below does not match. If `Unmapped` is non-zero in production, something changed upstream that must be investigated.
