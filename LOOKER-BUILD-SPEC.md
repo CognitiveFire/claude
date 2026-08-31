@@ -57,14 +57,13 @@ Rows with `—` will not appear in Floodlight data for that market — this is e
 
 ### D2 — Cost-to-booking join
 
-**Current state:** cost and bookings are in separate sources with no join key that resolves channel + product + date reliably across all three.
+**Current state:** the existing report uses a Blend on `t_all_cost_brand_split` (the PIVOT table) which already contains both cost and booking fields (`Booked`, `Credit Limit`) in a single source. Confirmed 2026-08-31 from edit-mode screenshot — bookings table uses this blend with filter "Exclude Brand and Others".
 
 **Specified join for Home page (product-level only):**
-- Left: `t_all_cost_raw` — cost by market, product, date
-- Right: bookings source (likely `master_ecommerce_funnel`) — booked customers by market, product, date
-- Join key: `market` + `product_canonical` + `date`
-- Join type: **left join** (keep all cost rows even if no bookings that day)
-- Silent drop risk: bookings with no matching cost row will be dropped. This is acceptable for the Home table (cost-anchored) but must be noted in the data quality panel.
+- Source: `t_all_cost_brand_split` (BQ PIVOT) — already contains cost + `Booked` + `Credit Limit` by market, product
+- No separate join needed if all required fields are present in this table
+- **Action required:** inspect `t_all_cost_brand_split` schema to confirm all cost component fields (google_ads_cost, jellyfish_cost, sa360_fees, etc.) and booking fields are present. If cost components are missing, blend with `t_all_cost_raw` on market + product + date.
+- Silent drop risk: Brand rows excluded by filter — confirm this is intentional for the new report.
 
 **Channel-level CPA is not yet buildable.** The DV360 attribution problem (see D3) means channel-level bookings cannot be summed without double-counting. The SA360 page shows cost-side metrics reliably; the booking metric on that page is the Floodlight `Send` count (form submission), not bank-confirmed booked customers. This must be labelled explicitly.
 
@@ -461,7 +460,7 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | O2 | ~~Floodlight activity IDs~~ **RESOLVED 2026-08-31** — all Send/Approved/Paid Out IDs extracted from CM360 API (see D5 tables). Gaps: FI/SE missing Refinance/CC Send and Approved — confirm with Stephan | Stephan | All booking metrics |
 | O3 | `bookings_click_attributed` — confirm isolatable in CM360 data with `interaction_type = CLICK` | Stephan / trafficking | DV360 hero row |
 | O4 | SA360 connector field names (cost, conversions, campaigns) for NO/SE/FI | Apriil | SA360 page |
-| O5 | `master_ecommerce_funnel` BQ schema — confirm product field and booking event | Stephan | Home table join |
+| O5 | ~~`master_ecommerce_funnel` schema~~ **RESOLVED 2026-08-31** — Bookings table on Page 1 uses a Blend on `t_all_cost_brand_split` (ds29). Fields confirmed: `Product` (dim), `Booked` (metric), `Credit Limit` (metric). Filter: "Exclude Brand and Others". `master_ecommerce_funnel` is NOT the bookings source in the existing report. | Stephan | Home table join |
 | O6 | ~~Search Console property URLs~~ **RESOLVED 2026-08-31** — `sc-domain:morrowbank.no`, `sc-domain:morrowbank.se`, `sc-domain:morrowbank.fi` (all siteFullUser, confirmed via API) | Stephan | Organic page |
 | O7 | Keyword-to-product mapping table — create in BQ if it does not exist | Apriil + Stephan | Organic main table |
 | O8 | Competitor keyword list for topic coverage side panel | Stephan / SEO agency | Organic side panel |
