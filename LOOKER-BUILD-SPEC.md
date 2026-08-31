@@ -98,6 +98,7 @@ Rows with `—` will not appear in Floodlight data for that market — this is e
 | Booked customers | Bank-confirmed applications — product-specific Floodlight `Approved` or `Paid Out` activity | CM360 Floodlight | Must use explicit activity IDs. Deposit currently shows 173 booked at zero cost — flag in data quality panel. |
 | Paid-out volume | NOK/SEK/EUR value of loans paid out | `t_all_cost_brand_split`.`Paid out Volume` | Confirmed 2026-08-31 — field exists in PIVOT table alongside Booked and Credit Limit. |
 | Marketing cost | Sum of: `Media Spend` + `Agency Cost` + `Affiliate Cost` + `actual_sa360_fee` | `cost_data.t_all_cost_raw` | Field names confirmed from report editor 2026-08-31. All in local currency. No EUR conversion in report — show currency label per row. |
+| Marketing cost per product | `Marketing Cost for Loan`, `Marketing Cost for Credit Card` etc. | `t_all_cost_brand_split` | Per-product cost fields confirmed — the PIVOT table has separate named cost fields per product, not a single cost column filtered by product. |
 | MER | Marketing cost ÷ paid-out volume | Calculated | Labelled as MER throughout. The existing report calls this "CAC" — that label must not appear on the new screens. |
 | Cost per booked | Marketing cost ÷ booked customers (click-attributed, product level) | Calculated | Blended across channels at product level on Home page. Channel-specific on SA360/DV360 pages with attribution basis in tooltip. |
 | SA360 leads / sends | Floodlight `Send` count as reported by SA360 | SA360 connector | Not comparable to booked customers. 2,698 SA360 conversions vs 330 bank-booked in July NO — different stages, different windows. Never presented in the same column. |
@@ -468,7 +469,7 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | O7 | Keyword-to-product mapping table | Apriil + Stephan | **DEFERRED** — Organic page main table will show placeholder until mapping table exists. |
 | O8 | Competitor keyword list for topic coverage side panel | Stephan / SEO agency | **DEFERRED** — Organic side panel shows placeholder panel with explanation. |
 | O9 | ~~Paid-out volume source~~ **RESOLVED 2026-08-31** — `Paid out Volume` is a field in `t_all_cost_brand_split` (confirmed from combo chart properties). Same source as `Booked` and `Credit Limit`. Not a separate Floodlight pull. | Stephan | Home hero row 3 |
-| O10 | `t_daily_targets` field names — confirm product and market keys, target metric names | Apriil (can inspect in Looker Studio) | Home side panel A |
+| O10 | `t_daily_targets` field names — **PARTIAL** — Page 2 bar chart shows "Actual Volume" and "Target" as metric labels, data source `t_all_cost_brand_split`. Need to click bar chart on Page 2 to confirm if it blends with `t_daily_targets` (ds34) or if targets come from the same PIVOT table. | Apriil (can inspect in Looker Studio) | Home side panel A |
 | O11 | Rename `Stephan Test` (ds29) to `cost_by_product_market_pivot` in the copy | Apriil | Hygiene before Phase 2 |
 | O12 | Remove 14 orphaned data sources from copy | Apriil | Hygiene before Phase 2 |
 | O13 | ~~SE Credit Cards: zero spend~~ **RESOLVED 2026-08-31** — expected. Credit Card not yet launched in SE, confirmed by Matthew. | Stephan | Page 1 table accuracy |
