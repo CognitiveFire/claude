@@ -25,6 +25,19 @@ Refinance Existing
 Unmapped
 ```
 
+**Product availability by market (confirmed):**
+
+| Product | NO | FI | SE |
+|---------|----|----|-----|
+| Consumer Loan | ✓ | ✓ | ✓ |
+| Credit Card | ✓ | ✓ | — |
+| Refinance | ✓ | — | — |
+| Deposit | ✓ | ? | ? |
+| Flex Loan | ? | ? | ? |
+| Refinance Existing | ✓ | — | — |
+
+Rows with `—` will not appear in Floodlight data for that market — filter by market before checking for Unmapped rows.
+
 `Unmapped` is always present and is never filtered out. It is the bucket for rows where the derivation logic below does not match. If `Unmapped` is non-zero in production, something changed upstream that must be investigated.
 
 **Derivation per source:**
@@ -113,7 +126,7 @@ Spec the warehouse view to filter on `activity_id IN (...)` with a comment listi
 | FI | Credit Card | FL - Counter Send Credit Card | 433424955 |
 | SE | Consumer Loan | FL - Counter Send Consumer Loan | 433332683 |
 
-Note: FI and SE have no Refinance Send activity. SE has no Credit Card Send activity. Confirm with Stephan whether these are missing or not yet launched.
+Note: FI does not offer Refinance. SE does not offer Credit Card or Refinance. No Send activities for those product/market combinations — confirmed correct.
 
 #### Approved activities (ACTIVE)
 
@@ -126,7 +139,7 @@ Note: FI and SE have no Refinance Send activity. SE has no Credit Card Send acti
 | FI | Credit Card | FL - Counter Approved Credit Card | 138904321 |
 | SE | Consumer Loan | FL - Counter Approved Consumer Loan | 139767276 |
 
-Note: SE has no Approved Credit Card or Refinance activity. Confirm with Stephan.
+Note: SE has no Approved Credit Card or Refinance activity — confirmed correct (products not offered in SE).
 
 #### Paid Out activities (ACTIVE)
 
@@ -142,7 +155,7 @@ Note: SE has no Approved Credit Card or Refinance activity. Confirm with Stephan
 | SE | Consumer Loan | Consumer Loan Paid Out | 185591222 |
 | SE | (generic) | Conversion Paid Out | 105866773 |
 
-Note: NO has both product-specific and a generic "Conversion Paid Out - NO" (84445506). Use product-specific IDs where available. Confirm with Stephan whether the generic IDs are legacy duplicates or still in use.
+Note: NO has both product-specific and a generic "Conversion Paid Out - NO" (84445506). Use product-specific IDs where available; treat the generic ID as legacy unless confirmed otherwise.
 
 #### Begin Checkout activities (for reference — GA4 equivalent in CM360)
 
