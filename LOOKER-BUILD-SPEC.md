@@ -36,7 +36,7 @@ Unmapped
 | Refinance Existing | ✓ | — | — |
 | Flex Loan | — | — | — |
 
-Sources: Google Ads active/paused campaigns per account, CM360 Floodlight activity names.
+Sources: Google Ads active/paused campaigns per account, CM360 Floodlight activity names, morrowbank.se product pages (2026-08-31 — no Credit Card listed).
 Flex Loan: no campaigns or Floodlight activities found in any market — treat as inactive/deprecated until confirmed.
 Rows with `—` will not appear in Floodlight data for that market — this is expected; not an Unmapped gap.
 
