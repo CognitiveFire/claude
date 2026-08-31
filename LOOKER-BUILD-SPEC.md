@@ -25,18 +25,20 @@ Refinance Existing
 Unmapped
 ```
 
-**Product availability by market (confirmed):**
+**Product availability by market (confirmed via Google Ads campaigns + CM360 Floodlight activities):**
 
 | Product | NO | FI | SE |
 |---------|----|----|-----|
 | Consumer Loan | ✓ | ✓ | ✓ |
 | Credit Card | ✓ | ✓ | — |
 | Refinance | ✓ | — | — |
-| Deposit | ✓ | ? | ? |
-| Flex Loan | ? | ? | ? |
+| Deposit / Savings | ✓ | — | ✓ |
 | Refinance Existing | ✓ | — | — |
+| Flex Loan | — | — | — |
 
-Rows with `—` will not appear in Floodlight data for that market — filter by market before checking for Unmapped rows.
+Sources: Google Ads active/paused campaigns per account, CM360 Floodlight activity names.
+Flex Loan: no campaigns or Floodlight activities found in any market — treat as inactive/deprecated until confirmed.
+Rows with `—` will not appear in Floodlight data for that market — this is expected; not an Unmapped gap.
 
 `Unmapped` is always present and is never filtered out. It is the bucket for rows where the derivation logic below does not match. If `Unmapped` is non-zero in production, something changed upstream that must be investigated.
 
