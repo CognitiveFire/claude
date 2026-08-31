@@ -96,8 +96,8 @@ Rows with `—` will not appear in Floodlight data for that market — this is e
 |-------------|-----------|--------|-------|
 | Form sends | Floodlight `Send` activity — form submitted | CM360 Floodlight | NOT GA4 `begin_checkout`. Must use explicit Floodlight activity IDs, not substring match on "send". |
 | Booked customers | Bank-confirmed applications — product-specific Floodlight `Approved` or `Paid Out` activity | CM360 Floodlight | Must use explicit activity IDs. Deposit currently shows 173 booked at zero cost — flag in data quality panel. |
-| Paid-out volume | NOK/SEK/EUR value of loans paid out | CM360 Floodlight or BQ booking table | Confirm source with Stephan. |
-| Marketing cost | `google_ads_cost + jellyfish_cost + sa360_fees + bing_cost + agency_fees + adtraction_spend` | `cost_data.t_all_cost_raw` | All in local currency. No EUR conversion in report — show currency label per row. |
+| Paid-out volume | NOK/SEK/EUR value of loans paid out | `t_all_cost_brand_split`.`Paid out Volume` | Confirmed 2026-08-31 — field exists in PIVOT table alongside Booked and Credit Limit. |
+| Marketing cost | Sum of: `Media Spend` + `Agency Cost` + `Affiliate Cost` + `actual_sa360_fee` | `cost_data.t_all_cost_raw` | Field names confirmed from report editor 2026-08-31. All in local currency. No EUR conversion in report — show currency label per row. |
 | MER | Marketing cost ÷ paid-out volume | Calculated | Labelled as MER throughout. The existing report calls this "CAC" — that label must not appear on the new screens. |
 | Cost per booked | Marketing cost ÷ booked customers (click-attributed, product level) | Calculated | Blended across channels at product level on Home page. Channel-specific on SA360/DV360 pages with attribution basis in tooltip. |
 | SA360 leads / sends | Floodlight `Send` count as reported by SA360 | SA360 connector | Not comparable to booked customers. 2,698 SA360 conversions vs 330 bank-booked in July NO — different stages, different windows. Never presented in the same column. |
@@ -245,6 +245,8 @@ All scorecards: no comparison period by default (avoids misleading delta on MER 
 | Footer | Grand total row |
 
 **Cost per booked** on this table = blended marketing cost ÷ booked customers at product level. Channel is contextual grouping only — there is no channel-attributed booking number on this page (see D2).
+
+**Note:** The existing report's CPA/CAC table filters out Refinance and Brand. The new report must show all products including Refinance — do not carry over the "exclude refinance" filter. If Refinance CPA looks anomalous, flag it in the data quality panel rather than hiding it.
 
 **Unmapped product** always appears as a row. If non-zero, it appears in red.
 
@@ -464,7 +466,7 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | O6 | ~~Search Console property URLs~~ **RESOLVED 2026-08-31** — `sc-domain:morrowbank.no`, `sc-domain:morrowbank.se`, `sc-domain:morrowbank.fi` (all siteFullUser, confirmed via API) | Stephan | Organic page |
 | O7 | Keyword-to-product mapping table — create in BQ if it does not exist | Apriil + Stephan | Organic main table |
 | O8 | Competitor keyword list for topic coverage side panel | Stephan / SEO agency | Organic side panel |
-| O9 | Paid-out volume source — CM360 Floodlight or separate BQ table? | Stephan | Home hero row 3 |
+| O9 | ~~Paid-out volume source~~ **RESOLVED 2026-08-31** — `Paid out Volume` is a field in `t_all_cost_brand_split` (confirmed from combo chart properties). Same source as `Booked` and `Credit Limit`. Not a separate Floodlight pull. | Stephan | Home hero row 3 |
 | O10 | `t_daily_targets` field names — confirm product and market keys, target metric names | Apriil (can inspect in Looker Studio) | Home side panel A |
 | O11 | Rename `Stephan Test` (ds29) to `cost_by_product_market_pivot` in the copy | Apriil | Hygiene before Phase 2 |
 | O12 | Remove 14 orphaned data sources from copy | Apriil | Hygiene before Phase 2 |
