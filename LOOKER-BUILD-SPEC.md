@@ -471,8 +471,8 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | O10 | `t_daily_targets` field names — confirm product and market keys, target metric names | Apriil (can inspect in Looker Studio) | Home side panel A |
 | O11 | Rename `Stephan Test` (ds29) to `cost_by_product_market_pivot` in the copy | Apriil | Hygiene before Phase 2 |
 | O12 | Remove 14 orphaned data sources from copy | Apriil | Hygiene before Phase 2 |
-| O13 | SE Credit Cards: zero spend in July — confirm expected or data gap | Stephan | Page 1 table accuracy |
-| O14 | NO Refinance: zero spend in July — confirm paused or data gap | Apriil (SA360 check) | Page 1 table accuracy |
+| O13 | ~~SE Credit Cards: zero spend~~ **RESOLVED 2026-08-31** — expected. Credit Card not yet launched in SE, confirmed by Matthew. | Stephan | Page 1 table accuracy |
+| O14 | ~~NO Refinance: zero spend~~ **RESOLVED 2026-08-31** — confirmed data gap, NOT paused. Google Ads shows 29,693 NOK spend on "NO - Search - Refinance" in July (PAUSED now but active in July). Three Display/YouTube Refinance campaigns are REMOVED and show zero — those are genuine zeros. The 29,693 NOK is missing from `t_all_cost_brand_split` — likely excluded by the "Exclude Brand and Others" filter or dropped by the brand split PIVOT logic. **Flag in data quality panel; investigate PIVOT query for Refinance exclusion.** | Apriil (SA360 check) | Page 1 table accuracy |
 
 ---
 
