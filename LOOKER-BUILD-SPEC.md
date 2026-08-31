@@ -101,6 +101,7 @@ Rows with `—` will not appear in Floodlight data for that market — this is e
 | Marketing cost per product | `Marketing Cost for Loan`, `Marketing Cost for Credit Card` etc. | `t_all_cost_brand_split` | Per-product cost fields confirmed — the PIVOT table has separate named cost fields per product, not a single cost column filtered by product. |
 | MER | Marketing cost ÷ paid-out volume | Calculated | Labelled as MER throughout. The existing report calls this "CAC" — that label must not appear on the new screens. |
 | Cost per booked | Marketing cost ÷ booked customers (click-attributed, product level) | Calculated | Blended across channels at product level on Home page. Channel-specific on SA360/DV360 pages with attribution basis in tooltip. |
+| Conversions YoY | `total_conversions` from same period prior year | `CC last year` (ds36 — custom SQL on `t_all_cost_brand_split`) | Blend on product + advertiser + display_date. Show as comparison column or delta %. |
 | SA360 leads / sends | Floodlight `Send` count as reported by SA360 | SA360 connector | Not comparable to booked customers. 2,698 SA360 conversions vs 330 bank-booked in July NO — different stages, different windows. Never presented in the same column. |
 | Organic form sends | GA4 `begin_checkout` | GA4 / `master_ecommerce_funnel` | Form started, not submitted. Flagged until confirmed that this event reliably means the same thing across markets. Labelled: "Form starts (GA4) — not confirmed submissions." |
 
@@ -426,6 +427,7 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | Search Console — FI | Google Search Console connector | `sc-domain:morrowbank.fi` | Create new |
 | Search Console — SE | Google Search Console connector | `sc-domain:morrowbank.se` | Create new |
 | Fixed/agency cost | Google Sheets — `Agency Cost - Sheet2` (ds44) | Orphaned | Assess whether to keep or migrate to BQ |
+| YoY comparison | Custom SQL on `t_all_cost_brand_split` — shifts date +1 year, pulls `total_conversions` for prior year period | `CC last year` (ds36) | **Keep.** Used for year-on-year conversion comparison. Fields: `display_date` (date +1yr), `dv360_advertiser`, `product`, `total_conversions`. Blend with current period on `product` + `dv360_advertiser` + `display_date`. |
 
 **14 orphaned sources** should be removed from the copy before Phase 2 begins. Only the 4 active sources (ds0, ds29, ds34, ds37) are carried forward, renamed cleanly, and supplemented with the new connectors above.
 
