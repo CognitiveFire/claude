@@ -90,7 +90,7 @@ Unmapped
 | SA360 leads / sends | Floodlight `Send` count as reported by SA360 | SA360 connector | Not comparable to booked customers. 2,698 SA360 conversions vs 330 bank-booked in July NO — different stages, different windows. Never presented in the same column. |
 | Organic form sends | GA4 `begin_checkout` | GA4 / `master_ecommerce_funnel` | Form started, not submitted. Flagged until confirmed that this event reliably means the same thing across markets. Labelled: "Form starts (GA4) — not confirmed submissions." |
 
-**Attribution window:** CM360 30-day click / 7-day view. SA360 being changed to 30-day click — **confirm this is live before building SA360 page.** Until confirmed, SA360 numbers are footnoted: "SA360 using 90-day attribution window."
+**Attribution window:** CM360 30-day click / 7-day view. SA360 attribution is also 30-day click — confirmed 2026-08-31 via CM360 Floodlight Configuration API (all three markets: NO config 14356170, FI config 14356173, SE config 14399044 all show `clickDuration: 30`). Update D7 item 2 accordingly.
 
 ---
 
@@ -98,12 +98,62 @@ Unmapped
 
 Floodlight matching currently uses substring (`"paid out"`, `"send"`, `"approved"`). This is fragile and catches unintended activities including one at zero rows that would double-count if it fires.
 
-**Before building:** obtain explicit Floodlight activity IDs from Stephan for:
-- Form Send (per product, per market)
-- Approved (per product, per market)
-- Paid Out (per product, per market)
+**Floodlight activity IDs — resolved 2026-08-31 via CM360 API (profile 10999615, account 2318929).**
 
 Spec the warehouse view to filter on `activity_id IN (...)` with a comment listing the IDs. Any new activity ID added by the client will be invisible until the list is updated — this is preferable to a substring match that auto-includes unknown activities.
+
+#### Form Send activities (ACTIVE)
+
+| Market | Product | Activity name | ID |
+|--------|---------|---------------|----|
+| NO | Consumer Loan | FL - Counter Send Consumer Loan | 433332677 |
+| NO | Credit Card | FL - Counter Send Credit Card | 433840549 |
+| NO | Refinance | FL - Counter Send External Refinance | 433431948 |
+| FI | Consumer Loan | FL - Counter Send Consumer Loan | 434514460 |
+| FI | Credit Card | FL - Counter Send Credit Card | 433424955 |
+| SE | Consumer Loan | FL - Counter Send Consumer Loan | 433332683 |
+
+Note: FI and SE have no Refinance Send activity. SE has no Credit Card Send activity. Confirm with Stephan whether these are missing or not yet launched.
+
+#### Approved activities (ACTIVE)
+
+| Market | Product | Activity name | ID |
+|--------|---------|---------------|----|
+| NO | Consumer Loan | FL - Counter Approved Consumer Loan | 145564878 |
+| NO | Credit Card | FL - Counter Approved Credit Card | 145561519 |
+| NO | Refinance | FL - Counter Approved External Refinance | 186362175 |
+| FI | Consumer Loan | FL - Counter Approved Consumer Loan | 139635736 |
+| FI | Credit Card | FL - Counter Approved Credit Card | 138904321 |
+| SE | Consumer Loan | FL - Counter Approved Consumer Loan | 139767276 |
+
+Note: SE has no Approved Credit Card or Refinance activity. Confirm with Stephan.
+
+#### Paid Out activities (ACTIVE)
+
+| Market | Product | Activity name | ID |
+|--------|---------|---------------|----|
+| NO | Consumer Loan | Consumer Loan Paid Out | 177867827 |
+| NO | Credit Card | Credit Card Paid Out | 177868448 |
+| NO | Refinance | External Refinance Paid Out | 186362181 |
+| NO | (generic) | Conversion Paid Out - NO | 84445506 |
+| FI | Consumer Loan | Consumer Loan Paid Out | 177870140 |
+| FI | Credit Card | Credit Card Paid Out | 178000573 |
+| FI | (generic) | Conversion Paid Out | 105890573 |
+| SE | Consumer Loan | Consumer Loan Paid Out | 185591222 |
+| SE | (generic) | Conversion Paid Out | 105866773 |
+
+Note: NO has both product-specific and a generic "Conversion Paid Out - NO" (84445506). Use product-specific IDs where available. Confirm with Stephan whether the generic IDs are legacy duplicates or still in use.
+
+#### Begin Checkout activities (for reference — GA4 equivalent in CM360)
+
+| Market | Product | Activity name | ID |
+|--------|---------|---------------|----|
+| NO | Consumer Loan | Begin Checkout - Consumer Loan | 325718590 |
+| NO | Credit Card | Begin Checkout - Credit Card | 322432474 |
+| NO | Refinance | Begin Checkout - Refinance | 322371743 |
+| FI | Consumer Loan | Begin Checkout - Consumer Loan | 327706297 |
+| FI | Credit Card | Begin Checkout - Credit Card | 327618445 |
+| SE | Consumer Loan | Begin Checkout - Consumer Loan | 322296034 |
 
 ---
 
@@ -118,7 +168,7 @@ All three markets report in local currency (NOK / SEK / EUR). The new report doe
 A fixed side panel on the Home page lists known caveats. It is always visible and never filterable. Contents:
 
 1. DV360 bookings any-touch path statistic — do not sum with SA360 or organic
-2. SA360 attribution window: 90-day (pending change to 30-day — update when confirmed)
+2. SA360 attribution window: **30-day click** (confirmed 2026-08-31 — CM360 Floodlight config)
 3. CM360/SA360 windows differ — cross-channel comparison is directional only
 4. Organic form sends = GA4 begin_checkout (form start, not submission)
 5. SA360 leads = Floodlight Send (form submission) — different funnel stage from GA4
@@ -391,8 +441,8 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 
 | # | Item | Owner | Blocking |
 |---|------|-------|---------|
-| O1 | SA360 attribution window: confirm 30-day click is live | Stephan | SA360 page footnote |
-| O2 | Floodlight activity IDs for Send, Approved, Paid Out (per product, per market) | Stephan | All booking metrics |
+| O1 | ~~SA360 attribution window: confirm 30-day click is live~~ **RESOLVED 2026-08-31** — CM360 Floodlight configs confirm 30-day click for NO/FI/SE | Stephan | SA360 page footnote |
+| O2 | ~~Floodlight activity IDs~~ **RESOLVED 2026-08-31** — all Send/Approved/Paid Out IDs extracted from CM360 API (see D5 tables). Gaps: FI/SE missing Refinance/CC Send and Approved — confirm with Stephan | Stephan | All booking metrics |
 | O3 | `bookings_click_attributed` — confirm isolatable in CM360 data with `interaction_type = CLICK` | Stephan / trafficking | DV360 hero row |
 | O4 | SA360 connector field names (cost, conversions, campaigns) for NO/SE/FI | Apriil | SA360 page |
 | O5 | `master_ecommerce_funnel` BQ schema — confirm product field and booking event | Stephan | Home table join |
