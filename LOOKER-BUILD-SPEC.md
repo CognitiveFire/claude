@@ -419,7 +419,9 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | SA360 — Norway | SA360 connector | `Norway Search Ads 360` (ds32) — orphaned | Must reconnect or create new |
 | SA360 — Finland | SA360 connector | `Finnland Search Ads 360` (ds41) — orphaned | Must reconnect or create new |
 | SA360 — Sweden | SA360 connector | Not present — must create | Create new |
-| Search Console | Google Search Console connector | Not present — must create | Create new per market |
+| Search Console — NO | Google Search Console connector | `sc-domain:morrowbank.no` | Create new |
+| Search Console — FI | Google Search Console connector | `sc-domain:morrowbank.fi` | Create new |
+| Search Console — SE | Google Search Console connector | `sc-domain:morrowbank.se` | Create new |
 | Fixed/agency cost | Google Sheets — `Agency Cost - Sheet2` (ds44) | Orphaned | Assess whether to keep or migrate to BQ |
 
 **14 orphaned sources** should be removed from the copy before Phase 2 begins. Only the 4 active sources (ds0, ds29, ds34, ds37) are carried forward, renamed cleanly, and supplemented with the new connectors above.
@@ -460,7 +462,7 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 | O3 | `bookings_click_attributed` — confirm isolatable in CM360 data with `interaction_type = CLICK` | Stephan / trafficking | DV360 hero row |
 | O4 | SA360 connector field names (cost, conversions, campaigns) for NO/SE/FI | Apriil | SA360 page |
 | O5 | `master_ecommerce_funnel` BQ schema — confirm product field and booking event | Stephan | Home table join |
-| O6 | Search Console property URLs for NO/SE/FI | Stephan | Organic page |
+| O6 | ~~Search Console property URLs~~ **RESOLVED 2026-08-31** — `sc-domain:morrowbank.no`, `sc-domain:morrowbank.se`, `sc-domain:morrowbank.fi` (all siteFullUser, confirmed via API) | Stephan | Organic page |
 | O7 | Keyword-to-product mapping table — create in BQ if it does not exist | Apriil + Stephan | Organic main table |
 | O8 | Competitor keyword list for topic coverage side panel | Stephan / SEO agency | Organic side panel |
 | O9 | Paid-out volume source — CM360 Floodlight or separate BQ table? | Stephan | Home hero row 3 |
