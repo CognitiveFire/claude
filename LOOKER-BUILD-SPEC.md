@@ -86,7 +86,7 @@ Rows with `—` will not appear in Floodlight data for that market — this is e
 - Always shown with a visible flag: "Path statistic — not a channel total. Includes view-through touchpoints."
 - Displayed in a side panel on the DV360 page only, separate from the main KPI row
 
-**Action required before DV360 page can be built:** confirm that `bookings_click_attributed` can be isolated in the CM360 data. The current pipeline credits DV360 if any touchpoint in the path was DV360, with no interaction type filter. The warehouse view must be updated to filter on `interaction_type = 'CLICK'` before this field is reliable.
+**Resolution:** add a CM360 native Looker Studio connector (separate from the BQ export) for the DV360 page. The CM360 connector exposes click-through and view-through conversions as distinct fields — no BQ pipeline change required. Connect using CM360 profile 10999615, advertiser IDs NO=14356170, FI=14356173, SE=14399044.
 
 ---
 
@@ -414,7 +414,8 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 |------|-------------|--------------------------|--------|
 | Primary cost table | `gtm-p2k7nfgh-odvmo.cost_data.t_all_cost_raw` | `t_all_cost_raw` (ds37) | Active — 6 charts |
 | Cost pivot (Page 4 bar) | `gtm-p2k7nfgh-odvmo.cost_data.t_all_cost_brand_split` | `Stephan Test` (ds29) — rename to `cost_by_product_market_pivot` | Active — 1 chart |
-| CM360 dimensions | `gtm-p2k7nfgh-odvmo` (table TBC) | `Master_CM360_Report` (ds0) | Active — 1 chart |
+| CM360 dimensions (cost) | `gtm-p2k7nfgh-odvmo.cost_data.Master_CM360_Report` | `Master_CM360_Report` (ds0) | Active — 1 chart |
+| CM360 conversions (DV360 page) | CM360 native Looker Studio connector | Not yet added | Add new — profile 10999615, advertisers NO/FI/SE. Exposes click-through vs view-through conversions separately. |
 | Targets | `gtm-p2k7nfgh-odvmo` (table TBC) | `t_daily_targets` (ds34) | Active — 1 chart |
 | Bookings / ecommerce funnel | `gtm-p2k7nfgh-odvmo` (table TBC) | `master_ecommerce_funnel` (ds10) — orphaned | Must reconnect |
 | SA360 — Norway | SA360 connector | `Norway Search Ads 360` (ds32) — orphaned | Must reconnect or create new |
@@ -460,7 +461,7 @@ All sources below are BigQuery (embedded, owner credentials from Stephan's Googl
 |---|------|-------|---------|
 | O1 | ~~SA360 attribution window: confirm 30-day click is live~~ **RESOLVED 2026-08-31** — CM360 Floodlight configs confirm 30-day click for NO/FI/SE | Stephan | SA360 page footnote |
 | O2 | ~~Floodlight activity IDs~~ **RESOLVED 2026-08-31** — all Send/Approved/Paid Out IDs extracted from CM360 API (see D5 tables). Gaps: FI/SE missing Refinance/CC Send and Approved — confirm with Stephan | Stephan | All booking metrics |
-| O3 | `bookings_click_attributed` — confirm isolatable in CM360 data with `interaction_type = CLICK` | Stephan / trafficking | DV360 hero row |
+| O3 | ~~`bookings_click_attributed` isolation~~ **RESOLVED 2026-08-31** — Add CM360 native Looker Studio connector (not BQ) for the DV360 page. The CM360 connector exposes click-through and view-through conversions as separate fields natively. No BQ pipeline change needed. Matthew has CM360 access (profile 10999615, account 2318929). | Stephan / trafficking | DV360 hero row |
 | O4 | SA360 connector field names (cost, conversions, campaigns) for NO/SE/FI | Apriil | SA360 page |
 | O5 | ~~`master_ecommerce_funnel` schema~~ **RESOLVED 2026-08-31** — Bookings table on Page 1 uses a Blend on `t_all_cost_brand_split` (ds29). Fields confirmed: `Product` (dim), `Booked` (metric), `Credit Limit` (metric). Filter: "Exclude Brand and Others". `master_ecommerce_funnel` is NOT the bookings source in the existing report. | Stephan | Home table join |
 | O6 | ~~Search Console property URLs~~ **RESOLVED 2026-08-31** — `sc-domain:morrowbank.no`, `sc-domain:morrowbank.se`, `sc-domain:morrowbank.fi` (all siteFullUser, confirmed via API) | Stephan | Organic page |
