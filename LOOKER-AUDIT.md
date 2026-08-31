@@ -53,7 +53,7 @@
 | ds37 | `t_all_cost_raw` | 6 | **Primary source** — all cost tables and trend charts |
 | ds0 | `Master_CM360_Report` | 1 | CM360 data (impressions, clicks, DV360 dims) |
 | ds34 | `t_daily_targets` | 1 | Target lines in bullet/progress charts |
-| ds29 | `Stephan Test` | 1 | ⚠️ **Named "Stephan Test" — likely a dev/test source in production** |
+| ds29 | `Stephan Test` | 1 | Custom SQL on `gtm-p2k7nfgh-odvmo.cost_data.Master_CM360_Report` — brand cost split logic (CC=60%, Refinance=40%, Consumer Loan=40% fallback). Outputs `combined_local_advertiser_cost` + all `r.*` columns from Master_CM360_Report including Booked, Paid out Volume, Credit Limit. SQL confirmed 2026-08-31. |
 
 **14 data sources are orphans (0 charts, 0 variables)** — they are attached but drive nothing. These include both `all_cost_brand_split` entries (ds31, ds45), `all_cost_raw` (ds33), `Norway Search Ads 360` (ds32), `Finnland Search Ads 360` (ds41), and 9 others. These should be reviewed and removed to reduce confusion.
 
@@ -90,6 +90,26 @@
 | `system_currency_cost` | Numeric | Cost in system/account currency |
 | `Brand Media Spend` | Numeric | **Calculated field** — formula unknown, needs inspection |
 | `Brand per product` | Numeric | **Calculated field** — formula unknown, needs inspection |
+
+### 2b. `Stephan Test` (ds29) — Brand cost split SQL (confirmed 2026-08-31)
+
+Source table: `gtm-p2k7nfgh-odvmo.cost_data.Master_CM360_Report`
+
+**Logic:** Brand cost pool is distributed to performance products per advertiser per date:
+
+| Product | Share of brand pool |
+|---------|-------------------|
+| Credit Card | 60% (100% if Refinance absent) |
+| Refinance | 40% (100% if Credit Card absent) |
+| Consumer Loan | 40% only if Refinance absent; 100% if both CC and Refinance absent |
+| Brand, Other | Zeroed out |
+| Deposit, all others | Unchanged (`local_advertiser_cost` as-is) |
+
+Distribution is per-row (`/ rows_per_product`) — brand pool is split evenly across all rows of that product for that advertiser, not summed to a single figure.
+
+Output field: `combined_local_advertiser_cost` — brand-adjusted cost per row.
+
+**`interaction_type` is NOT present in this query or in the Master_CM360_Report field list.** Click vs view-through attribution cannot be isolated from this source without a pipeline change.
 
 ---
 
