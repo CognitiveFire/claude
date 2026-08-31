@@ -29,7 +29,7 @@ Unmapped
 | Product | NO | FI | SE |
 |---------|----|----|-----|
 | Consumer Loan | ✓ | ✓ | ✓ |
-| Credit Card | ✓ | ✓ | — |
+| Credit Card | ✓ | ✓ | ✓ |
 | Refinance | ✓ | — | — |
 | Deposit / Savings | ✓ | — | ✓ |
 | Refinance Existing | ✓ | — | — |
@@ -127,7 +127,7 @@ Spec the warehouse view to filter on `activity_id IN (...)` with a comment listi
 | FI | Credit Card | FL - Counter Send Credit Card | 433424955 |
 | SE | Consumer Loan | FL - Counter Send Consumer Loan | 433332683 |
 
-Note: FI does not offer Refinance. SE does not offer Credit Card or Refinance. No Send activities for those product/market combinations — confirmed correct.
+Note: FI does not offer Refinance — no Send activity expected. SE does not offer Refinance — no Send activity expected. SE Credit Card Send activity is missing but Credit Card IS offered in SE — tracking gap, flag to Stephan.
 
 #### Approved activities (ACTIVE)
 
@@ -140,7 +140,7 @@ Note: FI does not offer Refinance. SE does not offer Credit Card or Refinance. N
 | FI | Credit Card | FL - Counter Approved Credit Card | 138904321 |
 | SE | Consumer Loan | FL - Counter Approved Consumer Loan | 139767276 |
 
-Note: SE has no Approved Credit Card or Refinance activity — confirmed correct (products not offered in SE).
+Note: SE has no Approved Credit Card activity. Credit Card IS offered in SE (confirmed on morrowbank.se) — this is a tracking gap. Flag to Stephan: SE Credit Card Approved and Send Floodlight activities need to be created.
 
 #### Paid Out activities (ACTIVE)
 
